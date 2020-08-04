@@ -1,0 +1,158 @@
+service: disposable-email
+
+plugins:
+  - serverless-prune-plugin
+  - serverless-iam-roles-per-function
+  - serverless-pseudo-parameters
+
+custom:
+  prune:
+    automatic: true
+    number: 3
+  domainName: "happyeme.com"
+  accountId: !Ref AWS::AccountId
+  ruleSetName: "happyemerule"
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: dev
+  accountId: 073342643714
+  region: ${opt:region}
+
+  tags:
+    Service: ${self:service}
+    Owner: binli
+    Environment: ${env:ENVIRONMENT}
+    Region: ${self:provider.region}
+    Version: ${env:SERVICE_VERSION}
+
+  stackTags:
+    Service: ${self:service}
+    Owner: binli
+    Environment: ${env:ENVIRONMENT}
+    Region: ${self:provider.region}
+    Version: ${env:SERVICE_VERSION}
+
+functions:
+  hello:
+    handler: src/handlers/hello.main
+    timeout: 300
+    memorySize: 256
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - "iam:CreatePolicyVersion"
+          - "iam:DeletePolicyVersion"
+        Resource: "*"
+
+resources:
+  Resources:
+    IncomingMailBucket:
+      Type: "AWS::S3::Bucket"
+      Properties:
+        BucketName: !Join
+          - "."
+          - - "incoming.disposable.v2"
+            - ${self:custom.domainName}
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+
+    IncomingMailBucketPolicy:
+      Type: "AWS::S3::BucketPolicy"
+      Properties:
+        Bucket:
+          Ref: "IncomingMailBucket"
+        PolicyDocument:
+          Statement:
+            Action: "s3:PutObject"
+            Effect: "Allow"
+            Resource: !Join
+              - ""
+              - - "arn:aws:s3:::"
+                - !Ref IncomingMailBucket
+                - "/*"
+            Principal:
+              Service: "ses.amazonaws.com"
+            Condition:
+              StringEquals:
+                aws:Referer: ${self:custom.accountId}
+
+    IncomingMailTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: "Disposable incoming mail topic"
+        Subscription:
+          - Endpoint: !Join
+              - ""
+              - - "arn:aws:lambda:"
+                - ${self:provider.region}
+                - ":"
+                - ${self:custom.accountId}
+                - ":function:disposable-email-"
+                - ${self:provider.stage}
+                - "-hello"
+            Protocol: "LAMBDA"
+
+    IncomingMailTopicPolicy:
+      Type: "AWS::SNS::TopicPolicy"
+      Properties:
+        Topics:
+          - !Ref IncomingMailTopic
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action: "sns:Publish"
+              Resource:
+                - !Ref IncomingMailTopic
+              Principal:
+                Service: "ses.amazonaws.com"
+              Condition:
+                ArnLike:
+                  AWS:SourceArn: !Join
+                    - ""
+                    - - "arn:aws:*:*:"
+                      - ${self:custom.accountId}
+                      - ":*"
+    IncomingMailCheckPermission:
+      Type: AWS::Lambda::Permission
+      Properties:
+        Action: lambda:InvokeFunction
+        FunctionName: "arn:aws:lambda:us-east-1:073342643714:function:disposable-email-dev-hello"
+        Principal: ses.amazonaws.com
+        SourceAccount: ${self:custom.accountId}
+
+    ReceiptRuleSet:
+      Type: AWS::SES::ReceiptRuleSet
+      Properties:
+        RuleSetName: ${self:custom.ruleSetName}
+
+    ReceiptRule:
+      Type: AWS::SES::ReceiptRule
+      Properties:
+        RuleSetName: ${self:custom.ruleSetName}
+        Rule:
+          Name: "disposable"
+          Enabled: true
+          ScanEnabled: true
+          Actions:
+            - LambdaAction:
+                FunctionArn: !Join
+                  - ""
+                  - - "arn:aws:lambda:"
+                    - ${self:provider.region}
+                    - ":"
+                    - ${self:custom.accountId}
+                    - ":function:disposable-email-"
+                    - ${self:provider.stage}
+                    - "-hello"
+                InvocationType: "RequestResponse"
+            - S3Action:
+                BucketName: !Ref IncomingMailBucket
+                TopicArn: !Ref IncomingMailTopic
+          Recipients:
+            - ${self:custom.domainName}
