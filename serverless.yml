@@ -2,19 +2,44 @@ service: disposable-email
 
 plugins:
   - serverless-prune-plugin
+  - serverless-dynamodb-local
+  - serverless-offline
   - serverless-iam-roles-per-function
   - serverless-pseudo-parameters
 
 custom:
+  dynamodb:
+    start:
+      port: 8000
+      inMemory: true
+      migrate: true
+      seed: true
+    seed:
+      domain:
+        sources:
+          - table: disposable_emails_table
+            sources: [./mocks/emails.json]
+          - table: disposable_sessions_table
+            sources: [./mocks/sessions.json]
+          - table: disposable_addresses_table
+            sources: [./mocks/addresses.json]
+    stages:
+      - ${opt:stage, self:provider.stage, 'dev'}
+    migration:
+      dir: offline/migrations
   prune:
     automatic: true
     number: 3
+  cors:
+    staging: false
+    production: false
+    default: true
   domainName: "happyeme.com"
   accountId: !Ref AWS::AccountId
   ruleSetName: "happyemerule"
-  emailsTableName: "disposable_addresses_table"
+  emailsTableName: "disposable_emails_table"
   sessionsTableName: "disposable_sessions_table"
-  addressesTableName: "disposable_emails_table"
+  addressesTableName: "disposable_addresses_table"
 
 provider:
   name: aws
@@ -38,8 +63,8 @@ provider:
     Version: ${env:SERVICE_VERSION}
 
 functions:
-  hello:
-    handler: src/handlers/hello.main
+  checkIncomingEmail:
+    handler: src/handlers/checkIncomingEmail.main
     timeout: 300
     memorySize: 256
     iamRoleStatements:
@@ -97,7 +122,7 @@ resources:
                 - ${self:custom.accountId}
                 - ":function:disposable-email-"
                 - ${self:provider.stage}
-                - "-hello"
+                - "-checkIncomingEmail"
             Protocol: "LAMBDA"
 
     IncomingMailTopicPolicy:
@@ -148,7 +173,7 @@ resources:
 #            - ${self:custom.accountId}
 #            - ":function:disposable-email-"
 #            - ${self:provider.stage}
-#            - "-hello"
+#            - "-checkIncomingEmail"
 
     ReceiptRule:
       Type: AWS::SES::ReceiptRule
@@ -168,7 +193,7 @@ resources:
                     - ${self:custom.accountId}
                     - ":function:disposable-email-"
                     - ${self:provider.stage}
-                    - "-hello"
+                    - "-checkIncomingEmail"
                 InvocationType: "RequestResponse"
             - S3Action:
                 BucketName: !Ref IncomingMailBucket
@@ -188,7 +213,10 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: "1"
           WriteCapacityUnits: "1"
-        TableName: ${self:custom.addressTableName}
+        TableName: ${self:custom.addressesTableName}
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
 
     EmailsTable:
       Type: AWS::DynamoDB::Table

@@ -9,7 +9,8 @@
     "test": "jest --passWithNoTests",
     "test:watch": "npm test -- --watch",
     "lint": "eslint '**/*.js' --ignore-path .gitignore",
-    "lint:fix": "npm run lint -- --fix"
+    "lint:fix": "npm run lint -- --fix",
+    "offline": "serverless offline start --region localhost --stage dev --seed=domain"
   },
   "repository": {
     "type": "git",
@@ -37,8 +38,9 @@
     }
   },
   "dependencies": {
-    "winston": "^3.3.3",
-    "dynamodb-driver": "^1.7.14"
+    "aws-sdk": "^2.729.0",
+    "dynamodb-driver": "^1.7.14",
+    "winston": "^3.3.3"
   },
   "devDependencies": {
     "eslint": "^7.3.1",
@@ -51,7 +53,9 @@
     "jest": "^26.1.0",
     "lint-staged": "^10.2.11",
     "prettier": "^2.0.5",
+    "serverless-dynamodb-local": "^0.2.39",
     "serverless-iam-roles-per-function": "^2.0.2",
+    "serverless-offline": "^6.5.0",
     "serverless-prune-plugin": "^1.4.3",
     "serverless-pseudo-parameters": "^2.5.0"
   }
