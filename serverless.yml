@@ -12,12 +12,15 @@ custom:
   domainName: "happyeme.com"
   accountId: !Ref AWS::AccountId
   ruleSetName: "happyemerule"
+  emailsTableName: "disposable_addresses_table"
+  sessionsTableName: "disposable_sessions_table"
+  addressesTableName: "disposable_emails_table"
 
 provider:
   name: aws
   runtime: nodejs12.x
   stage: dev
-  accountId: 073342643714
+  accountId: 716354888588
   region: ${opt:region}
 
   tags:
@@ -122,14 +125,30 @@ resources:
       Type: AWS::Lambda::Permission
       Properties:
         Action: lambda:InvokeFunction
-        FunctionName: "arn:aws:lambda:us-east-1:073342643714:function:disposable-email-dev-hello"
+        FunctionName: !Ref HelloLambdaFunction
         Principal: ses.amazonaws.com
         SourceAccount: ${self:custom.accountId}
+
 
     ReceiptRuleSet:
       Type: AWS::SES::ReceiptRuleSet
       Properties:
         RuleSetName: ${self:custom.ruleSetName}
+
+#    ActiveReceiptRuleSet:
+#      Type: Custom::ActiveReceiptRuleSet
+#      Properties:
+#        RuleSetName: !Ref ReceiptRuleSet
+#        Region: !Ref 'AWS::Region'
+#        ServiceToken: !Join
+#          - ""
+#          - - "arn:aws:lambda:"
+#            - ${self:provider.region}
+#            - ":"
+#            - ${self:custom.accountId}
+#            - ":function:disposable-email-"
+#            - ${self:provider.stage}
+#            - "-hello"
 
     ReceiptRule:
       Type: AWS::SES::ReceiptRule
@@ -156,3 +175,49 @@ resources:
                 TopicArn: !Ref IncomingMailTopic
           Recipients:
             - ${self:custom.domainName}
+
+    AddressesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        KeySchema:
+          - AttributeName: "address"
+            KeyType: "HASH"
+        AttributeDefinitions:
+          - AttributeName: "address"
+            AttributeType: "S"
+        ProvisionedThroughput:
+          ReadCapacityUnits: "1"
+          WriteCapacityUnits: "1"
+        TableName: !Ref addressTableName
+
+    EmailsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        KeySchema:
+          - AttributeName: "destination"
+            KeyType: "HASH"
+          - AttributeName: "messageId"
+            KeyType: "RANGE"
+        AttributeDefinitions:
+          - AttributeName: "destination"
+            AttributeType: "S"
+          - AttributeName: "messageId"
+            AttributeType: "S"
+        ProvisionedThroughput:
+          ReadCapacityUnits: "1"
+          WriteCapacityUnits: "1"
+        TableName: !Ref emailsTableName
+
+    SessionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        KeySchema:
+          - AttributeName: "sessionId"
+            KeyType: "HASH"
+        AttributeDefinitions:
+          - AttributeName: "sessionId"
+            AttributeType: "S"
+        ProvisionedThroughput:
+          ReadCapacityUnits: "1"
+          WriteCapacityUnits: "1"
+        TableName: !Ref sessionsTableName
