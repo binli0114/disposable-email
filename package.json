@@ -37,7 +37,8 @@
     }
   },
   "dependencies": {
-    "winston": "^3.3.3"
+    "winston": "^3.3.3",
+    "dynamodb-driver": "^1.7.14"
   },
   "devDependencies": {
     "eslint": "^7.3.1",

@@ -188,7 +188,7 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: "1"
           WriteCapacityUnits: "1"
-        TableName: !Ref addressTableName
+        TableName: ${self:custom.addressTableName}
 
     EmailsTable:
       Type: AWS::DynamoDB::Table
@@ -206,7 +206,7 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: "1"
           WriteCapacityUnits: "1"
-        TableName: !Ref emailsTableName
+        TableName: ${self:custom.emailsTableName}
 
     SessionsTable:
       Type: AWS::DynamoDB::Table
@@ -220,4 +220,4 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: "1"
           WriteCapacityUnits: "1"
-        TableName: !Ref sessionsTableName
+        TableName: ${self:custom.sessionsTableName}
