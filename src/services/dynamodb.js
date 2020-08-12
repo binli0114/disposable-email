@@ -17,6 +17,12 @@ const get = async params => {
 	return docClient.get(params).promise();
 };
 
+const put = async params => {
+	AWS.config.update(awsConfig());
+	const docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
+	return docClient.put(params).promise();
+};
 module.exports = {
-	get
+	get,
+	put
 };

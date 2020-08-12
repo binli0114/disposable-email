@@ -74,6 +74,15 @@ functions:
           - "iam:DeletePolicyVersion"
         Resource: "*"
 
+  storeIncomingEmail:
+    handler: src/handlers/storeIncomingEmail.main
+    timeout: 300
+    memorySize: 256
+    events:
+      - sns:
+          arn: !Ref IncomingMailTopic
+          topicName: IncomingMailTopic
+
 resources:
   Resources:
     IncomingMailBucket:
@@ -113,6 +122,7 @@ resources:
       Type: AWS::SNS::Topic
       Properties:
         DisplayName: "Disposable incoming mail topic"
+        TopicName: IncomingMailTopic
         Subscription:
           - Endpoint: !Join
               - ""
@@ -146,11 +156,12 @@ resources:
                     - - "arn:aws:*:*:"
                       - ${self:custom.accountId}
                       - ":*"
+
     IncomingMailCheckPermission:
       Type: AWS::Lambda::Permission
       Properties:
         Action: lambda:InvokeFunction
-        FunctionName: !Ref HelloLambdaFunction
+        FunctionName: !Ref CheckIncomingEmailLambdaFunction
         Principal: ses.amazonaws.com
         SourceAccount: ${self:custom.accountId}
 
