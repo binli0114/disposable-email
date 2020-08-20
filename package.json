@@ -43,6 +43,7 @@
     "winston": "^3.3.3"
   },
   "devDependencies": {
+    "commander": "^6.0.0",
     "eslint": "^7.3.1",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-jest": "^23.17.1",
