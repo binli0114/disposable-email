@@ -40,6 +40,8 @@
   "dependencies": {
     "aws-sdk": "^2.729.0",
     "dynamodb-driver": "^1.7.14",
+    "mailparser": "^2.8.1",
+    "mailparser-mit": "^1.0.0",
     "moment": "^2.27.0",
     "winston": "^3.3.3"
   },
