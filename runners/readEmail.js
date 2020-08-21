@@ -14,6 +14,8 @@ const simpleParser = require('mailparser').simpleParser;
 		console.log('date:', email.date);
 		console.log('subject:', email.subject);
 		console.log('body:', email.text);
+		console.log('to:', email.to.text);
+
 		console.log('from:', email.from.text);
 		console.log('attachments:', email.attachments);
 		return { status: 'success' };

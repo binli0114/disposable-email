@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "aws-sdk": "^2.729.0",
+    "axios": "^0.20.0",
     "dynamodb-driver": "^1.7.14",
     "mailparser": "^2.8.1",
     "mailparser-mit": "^1.0.0",
