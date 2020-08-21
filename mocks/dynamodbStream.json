@@ -1,19 +1,19 @@
 {
 	"Records": [
 		{
-			"eventID": "08668d3891298d82746f9e45d15215e7",
+			"eventID": "d3753b18b36b3a3040d669869e1bea40",
 			"eventName": "INSERT",
 			"eventVersion": "1.1",
 			"eventSource": "aws:dynamodb",
 			"awsRegion": "us-east-1",
 			"dynamodb": {
-				"ApproximateCreationDateTime": 1598006178,
+				"ApproximateCreationDateTime": 1598014676,
 				"Keys": {
 					"destination": {
-						"S": "5CcRYbmQ@happyeme.com"
+						"S": "uPmC161h@happyeme.com"
 					},
 					"messageId": {
-						"S": "e6n88qq7p2soh742q814h9qefietaigm4lnfpgg1"
+						"S": "kcpiddbc6uqu4b1ms6tgbfln4r3ou4e23htujlo1"
 					}
 				},
 				"NewImage": {
@@ -21,13 +21,13 @@
 						"S": "incoming.disposable.v2.happyeme.com"
 					},
 					"bucketObjectKey": {
-						"S": "e6n88qq7p2soh742q814h9qefietaigm4lnfpgg1"
+						"S": "kcpiddbc6uqu4b1ms6tgbfln4r3ou4e23htujlo1"
 					},
 					"destination": {
-						"S": "5CcRYbmQ@happyeme.com"
+						"S": "uPmC161h@happyeme.com"
 					},
 					"messageId": {
-						"S": "e6n88qq7p2soh742q814h9qefietaigm4lnfpgg1"
+						"S": "kcpiddbc6uqu4b1ms6tgbfln4r3ou4e23htujlo1"
 					},
 					"isNew": {
 						"BOOL": true
@@ -38,16 +38,16 @@
 					"commonHeaders": {
 						"M": {
 							"date": {
-								"S": "Fri, 21 Aug 2020 20:36:02 +1000"
+								"S": "Fri, 21 Aug 2020 22:57:40 +1000"
 							},
 							"returnPath": {
 								"S": "binlivvvv@gmail.com"
 							},
 							"subject": {
-								"S": "TEST 222"
+								"S": "TEST"
 							},
 							"messageId": {
-								"S": "<CAAhf=sNCQZeUvN5SaPpJP8uiWJBDhL_PTrLH016WJr+pPvBHqA@mail.gmail.com>"
+								"S": "<CAAhf=sMgP8pog3WXcdQDobA=d8=UgzJLqVYvMOdRsody7pp=hA@mail.gmail.com>"
 							},
 							"from": {
 								"L": [
@@ -59,93 +59,18 @@
 							"to": {
 								"L": [
 									{
-										"S": "5CcRYbmQ@happyeme.com"
+										"S": "uPmC161h@happyeme.com"
 									}
 								]
 							}
 						}
 					},
 					"timestamp": {
-						"S": "2020-08-21T10:36:14.478Z"
+						"S": "2020-08-21T12:57:52.418Z"
 					}
 				},
-				"SequenceNumber": "51588700000000027407770147",
-				"SizeBytes": 567,
-				"StreamViewType": "NEW_IMAGE"
-			},
-			"eventSourceARN": "arn:aws:dynamodb:us-east-1:073342643714:table/disposable_emails_table/stream/2020-08-21T10:33:51.382"
-		},
-		{
-			"eventID": "39450b0256f6be41a7c082f1e0a1774d",
-			"eventName": "MODIFY",
-			"eventVersion": "1.1",
-			"eventSource": "aws:dynamodb",
-			"awsRegion": "us-east-1",
-			"dynamodb": {
-				"ApproximateCreationDateTime": 1598006294,
-				"Keys": {
-					"destination": {
-						"S": "5lnacAU3@happyeme.com"
-					},
-					"messageId": {
-						"S": "2ekt0fl8gs9qte1n5rj1eh79g1gijdhki5gv7j81"
-					}
-				},
-				"NewImage": {
-					"bucketName": {
-						"S": "incoming.disposable.v2.happyeme.com"
-					},
-					"bucketObjectKey": {
-						"S": "2ekt0fl8gs9qte1n5rj1eh79g1gijdhki5gv7j81"
-					},
-					"destination": {
-						"S": "5lnacAU3@happyeme.com"
-					},
-					"messageId": {
-						"S": "2ekt0fl8gs9qte1n5rj1eh79g1gijdhki5gv7j81"
-					},
-					"isNew": {
-						"BOOL": false
-					},
-					"source": {
-						"S": "binlivvvv@gmail.com"
-					},
-					"commonHeaders": {
-						"M": {
-							"date": {
-								"S": "Fri, 21 Aug 2020 19:11:28 +1000"
-							},
-							"returnPath": {
-								"S": "binlivvvv@gmail.com"
-							},
-							"subject": {
-								"S": "TEST2"
-							},
-							"messageId": {
-								"S": "<CAAhf=sNCyW7_AE9zoNFeNFgJ_G29a4emxm-V346toWMJfphYUw@mail.gmail.com>"
-							},
-							"from": {
-								"L": [
-									{
-										"S": "Bin Li <binlivvvv@gmail.com>"
-									}
-								]
-							},
-							"to": {
-								"L": [
-									{
-										"S": "5lnacAU3@happyeme.com"
-									}
-								]
-							}
-						}
-					},
-					"timestamp": {
-						"S": "2020-08-21T09:11:40.213Z"
-					}
-				},
-				"SequenceNumber": "51588800000000027407832454",
-				"SizeBytes": 564,
+				"SequenceNumber": "51588900000000027413680167",
+				"SizeBytes": 563,
 				"StreamViewType": "NEW_IMAGE"
 			},
 			"eventSourceARN": "arn:aws:dynamodb:us-east-1:073342643714:table/disposable_emails_table/stream/2020-08-21T10:33:51.382"

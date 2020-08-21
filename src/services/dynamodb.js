@@ -21,6 +21,13 @@ const put = async params => {
 	const docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
 	return docClient.put(params).promise();
 };
+
+const update = async params => {
+	AWS.config.update(awsConfig());
+	const docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
+	return docClient.update(params).promise();
+};
+
 const storeEmail = async (mail, receipt) => {
 	const { destination, messageId, timestamp, source, commonHeaders } = mail;
 	const [currentDestination] = destination;
@@ -44,6 +51,7 @@ const storeEmail = async (mail, receipt) => {
 
 	await put(params);
 };
+
 const isAddressExist = async address => {
 	const TableName = "disposable_addresses_table";
 	const params = {
@@ -78,18 +86,34 @@ const getConversationDetail = async address => {
 		const { conversation, from, recipient, id: activityId, serviceUrl } = activity;
 		const { credentials } = adapter;
 		const { authenticationContext } = credentials;
-		const accessToken = authenticationContext["_cache"]["_entries"][0].accessToken;
-
+		const [validEntry] = authenticationContext["_cache"]["_entries"].filter(entry => {
+			return entry.expirationTime > Date.now();
+		});
+		const accessToken = validEntry.accessToken || "";
 		return { conversation, from, recipient, activityId, serviceUrl, accessToken };
 	} catch (err) {
 		console.error(err);
 	}
 	return null;
 };
+
+const setEmailToRead = async (destination, messageId) => {
+	const params = {
+		TableName: "disposable_emails_table",
+		Key: { destination, messageId },
+		AttributeUpdates: {
+			isNew: { Action: "PUT", Value: false }
+		}
+	};
+
+	return update(params);
+};
+
 module.exports = {
 	get,
 	put,
 	getConversationDetail,
 	isAddressExist,
-	storeEmail
+	storeEmail,
+	setEmailToRead
 };

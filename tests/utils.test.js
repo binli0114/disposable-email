@@ -11,12 +11,17 @@ describe("utils", () => {
 				},
 				destination: {
 					S: "5CcRYbmQ@happyeme.com"
+				},
+				messageId: {
+					S: "myMessageId"
 				}
 			};
 			const result = getEmailObjectInfo(NewImage);
 			expect(result).toStrictEqual({
 				bucketName: "myBucketName",
-				bucketObjectKey: "e6n88qq7p2soh742"
+				bucketObjectKey: "e6n88qq7p2soh742",
+				destination: "5CcRYbmQ@happyeme.com",
+				messageId: "myMessageId"
 			});
 		});
 		it("should return undefined", () => {
@@ -24,7 +29,9 @@ describe("utils", () => {
 			const result = getEmailObjectInfo(NewImage);
 			expect(result).toStrictEqual({
 				bucketName: undefined,
-				bucketObjectKey: undefined
+				bucketObjectKey: undefined,
+				destination: undefined,
+				messageId: undefined
 			});
 		});
 	});
