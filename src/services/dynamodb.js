@@ -1,5 +1,4 @@
 const AWS = require("aws-sdk");
-
 const awsConfig = () => {
 	let config = { region: process.env.AWS_REGION };
 	if (process.env.DYNAMODB_ENDPOINT_OVERRIDE && process.env.ENVIRONMENT !== "production") {
@@ -22,20 +21,60 @@ const put = async params => {
 	const docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
 	return docClient.put(params).promise();
 };
+const storeEmail = async (mail, receipt) => {
+	const { destination, messageId, timestamp, source, commonHeaders } = mail;
+	const [currentDestination] = destination;
+	const {
+		action: { bucketName, objectKey: bucketObjectKey }
+	} = receipt;
+
+	const params = {
+		TableName: "disposable_emails_table",
+		Item: {
+			destination: currentDestination,
+			messageId,
+			timestamp,
+			source,
+			commonHeaders,
+			bucketName,
+			bucketObjectKey,
+			isNew: true
+		}
+	};
+
+	await put(params);
+};
+const isAddressExist = async address => {
+	const TableName = "disposable_addresses_table";
+	const params = {
+		TableName,
+		Key: { address }
+	};
+	const { Item } = await get(params);
+	if (Item) {
+		return true;
+		// const { ttl } = Item;
+		// if (ttl > moment.unix()) {
+		// }
+	}
+	return false;
+};
 
 const getConversationDetail = async address => {
-	AWS.config.update(awsConfig());
-	const docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
 	const TableName = "disposable_addresses_table";
 	const params = {
 		TableName,
 		Key: { address }
 	};
 	try {
-		const { Item } = await docClient.get(params).promise();
-
-		const activity = Item.context["_activity"];
-		const adapter = Item.context["_adapter"];
+		const {
+			Item: { context }
+		} = await get(params);
+		if (!context) {
+			return null;
+		}
+		const activity = context["_activity"];
+		const adapter = context["_adapter"];
 		const { conversation, from, recipient, id: activityId, serviceUrl } = activity;
 		const { credentials } = adapter;
 		const { authenticationContext } = credentials;
@@ -50,5 +89,7 @@ const getConversationDetail = async address => {
 module.exports = {
 	get,
 	put,
-	getConversationDetail
+	getConversationDetail,
+	isAddressExist,
+	storeEmail
 };

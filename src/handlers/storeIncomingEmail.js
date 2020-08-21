@@ -1,36 +1,11 @@
-const { logger } = require("../utils/logger");
-const { put } = require("../services/dynamodb");
+const { storeEmail } = require("../services/dynamodb");
 const main = async event => {
-	logger.info(event);
+	console.log(JSON.stringify(event, undefined, 2));
 	const [record] = event.Records;
-	const { sns } = record;
-	const { message } = sns;
-	const { mail, receipt } = message;
+	const { Sns } = record;
+	const { Message } = Sns;
+	const { mail, receipt } = JSON.parse(Message);
 	await storeEmail(mail, receipt);
-};
-
-const storeEmail = async (mail, receipt) => {
-	const { destination, messageId, timestamp, source, commonHeaders } = mail;
-	const [currentDestination] = destination;
-	const {
-		action: { bucketName, objectKey: bucketObjectKey }
-	} = receipt;
-
-	const params = {
-		TableName: "disposable_emails_table",
-		Item: {
-			destination: currentDestination,
-			messageId,
-			timestamp,
-			source,
-			commonHeaders,
-			bucketName,
-			bucketObjectKey,
-			isNew: true
-		}
-	};
-
-	await put(params);
 };
 
 module.exports = {

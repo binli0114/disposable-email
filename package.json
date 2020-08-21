@@ -40,6 +40,7 @@
   "dependencies": {
     "aws-sdk": "^2.729.0",
     "dynamodb-driver": "^1.7.14",
+    "moment": "^2.27.0",
     "winston": "^3.3.3"
   },
   "devDependencies": {

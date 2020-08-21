@@ -67,17 +67,34 @@ functions:
     handler: src/handlers/checkIncomingEmail.main
     timeout: 300
     memorySize: 256
+    iamRoleStatementsInherit: true
     iamRoleStatements:
       - Effect: Allow
         Action:
           - "iam:CreatePolicyVersion"
           - "iam:DeletePolicyVersion"
         Resource: "*"
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+        Resource:
+          - arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/${self:custom.addressesTableName}
 
   storeIncomingEmail:
     handler: src/handlers/storeIncomingEmail.main
     timeout: 300
     memorySize: 256
+    iamRoleStatementsInherit: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+          - dynamodb:GetItem
+        Resource:
+          - arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/${self:custom.emailsTableName}
+          - arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/${self:custom.addressesTableName}
+          - arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/${self:custom.sessionsTableName}
     events:
       - sns:
           arn: !Ref IncomingMailTopic
