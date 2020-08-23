@@ -124,6 +124,10 @@ functions:
           - arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/${self:custom.emailsTableName}
           - arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/${self:custom.addressesTableName}
           - arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/${self:custom.sessionsTableName}
+      - Effect: Allow
+        Action:
+          - sqs:SendMessage
+        Resource: "*"
     events:
       - stream:
           type: dynamodb

@@ -9,23 +9,23 @@ const awsConfig = () => {
 	}
 	return config;
 };
+//
+// const get = async params => {
+// 	AWS.config.update(awsConfig());
+// 	const docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
+// 	return docClient.get(params).promise();
+// };
+//
+// const put = async params => {
+// 	AWS.config.update(awsConfig());
+// 	const docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
+// 	return docClient.put(params).promise();
+// };
 
-const get = async params => {
+const executeDynamoDbAction = async (params, action) => {
 	AWS.config.update(awsConfig());
 	const docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
-	return docClient.get(params).promise();
-};
-
-const put = async params => {
-	AWS.config.update(awsConfig());
-	const docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
-	return docClient.put(params).promise();
-};
-
-const update = async params => {
-	AWS.config.update(awsConfig());
-	const docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
-	return docClient.update(params).promise();
+	return docClient[action](params).promise();
 };
 
 const storeEmail = async (mail, receipt) => {
@@ -49,7 +49,7 @@ const storeEmail = async (mail, receipt) => {
 		}
 	};
 
-	await put(params);
+	await executeDynamoDbAction(params, "put");
 };
 
 const isAddressExist = async address => {
@@ -58,7 +58,7 @@ const isAddressExist = async address => {
 		TableName,
 		Key: { address }
 	};
-	const { Item } = await get(params);
+	const { Item } = await executeDynamoDbAction(params, "get");
 	if (Item) {
 		return true;
 		// const { ttl } = Item;
@@ -75,7 +75,7 @@ const getConversationDetail = async address => {
 		Key: { address }
 	};
 	try {
-		const Item = await get(params);
+		const Item = await executeDynamoDbAction(params, "get");
 		if (!Item) {
 			return null;
 		}
@@ -108,14 +108,25 @@ const setEmailToRead = async (destination, messageId) => {
 		}
 	};
 
-	return update(params);
+	return executeDynamoDbAction(params, "update");
+};
+
+const deleteEmailItem = async (destination, messageId) => {
+	const params = {
+		TableName: "disposable_emails_table",
+		Key: { destination, messageId },
+		AttributeUpdates: {
+			isNew: { Action: "PUT", Value: false }
+		}
+	};
+
+	return executeDynamoDbAction(params, "delete");
 };
 
 module.exports = {
-	get,
-	put,
 	getConversationDetail,
 	isAddressExist,
 	storeEmail,
-	setEmailToRead
+	setEmailToRead,
+	deleteEmailItem
 };

@@ -1,6 +1,6 @@
 const { getEmailObjectInfo } = require("../utils");
-const { readEmailObject } = require("../services/s3");
-const { getConversationDetail, setEmailToRead } = require("../services/dynamodb");
+const { readEmailObject, deleteEmailObject } = require("../services/s3");
+const { getConversationDetail, setEmailToRead, deleteEmailItem } = require("../services/dynamodb");
 const { sendToMsTeams } = require("../services/bot");
 const main = async event => {
 	console.log(JSON.stringify(event, undefined, 2));
@@ -20,6 +20,12 @@ const main = async event => {
 				const email = await readEmailObject(bucketName, bucketObjectKey);
 				const address = email.to.text;
 				const conversationDetails = await getConversationDetail(address);
+				if (!conversationDetails) {
+					console.log("Invalid converstaion details, delete the email objects");
+					await deleteEmailObject(bucketName, bucketObjectKey);
+					await deleteEmailItem(destination, messageId);
+					continue;
+				}
 				await sendToMsTeams(conversationDetails, email);
 				await setEmailToRead(destination, messageId);
 			}

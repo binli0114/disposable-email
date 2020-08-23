@@ -1,4 +1,4 @@
-const { getConversationDetail, isAddressExist,isRequestorHasAddress } = require("../src/services/dynamodb");
+const { isRequestorHasAddress } = require("../src/services/dynamodb");
 const program = require("commander");
 const moment = require("moment");
 program
@@ -6,7 +6,6 @@ program
 	.requiredOption("-e, --email <email>", "email address")
 	.parse(process.argv);
 
-const { email } = program;
 (async () => {
 	process.env.AWS_REGION = "us-east-1";
 
@@ -17,7 +16,7 @@ const { email } = program;
 	// console.log(JSON.stringify(conversationDetails, undefined, 2));
 
 	const ttl = await isRequestorHasAddress("test@happyeme.com");
-	if(ttl){
+	if (ttl) {
 		const end = moment(ttl);
 		const duration = moment.duration(end.diff(Date.now()));
 		const minutes = duration.asMinutes();
