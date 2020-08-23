@@ -1,6 +1,12 @@
 [
 	{
 		"address": "test@happyeme.com",
+		"requestId": "abc123",
+		"ttl": 1602137424000
+	},
+	{
+		"address": "test1@happyeme.com",
+		"requestId": "bbc223",
 		"ttl": 1602137424000
 	}
 ]

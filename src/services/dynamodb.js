@@ -75,9 +75,11 @@ const getConversationDetail = async address => {
 		Key: { address }
 	};
 	try {
-		const {
-			Item: { context }
-		} = await get(params);
+		const Item = await get(params);
+		if (!Item) {
+			return null;
+		}
+		const { context } = Item;
 		if (!context) {
 			return null;
 		}
@@ -89,7 +91,7 @@ const getConversationDetail = async address => {
 		const [validEntry] = authenticationContext["_cache"]["_entries"].filter(entry => {
 			return entry.expirationTime > Date.now();
 		});
-		const accessToken = validEntry.accessToken || "";
+		const accessToken = validEntry && validEntry.accessToken;
 		return { conversation, from, recipient, activityId, serviceUrl, accessToken };
 	} catch (err) {
 		console.error(err);

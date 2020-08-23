@@ -6,6 +6,7 @@ plugins:
   - serverless-offline
   - serverless-iam-roles-per-function
   - serverless-pseudo-parameters
+  - serverless-plugin-lambda-dead-letter
 
 custom:
   dynamodb:
@@ -77,8 +78,9 @@ functions:
       - Effect: Allow
         Action:
           - dynamodb:GetItem
+          - dynamodb:Query
         Resource:
-          - arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/${self:custom.addressesTableName}
+          - arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/${self:custom.addressesTableName}*
 
   storeIncomingEmail:
     handler: src/handlers/storeIncomingEmail.main
@@ -127,6 +129,15 @@ functions:
           type: dynamodb
           arn:
             Fn::GetAtt: [EmailsTable, StreamArn]
+
+    deadLetter:
+      sqs:      # New Queue with these properties
+        queueName: distribute-email-dlq
+        delaySeconds: 60
+        maximumMessageSize: 2048
+        messageRetentionPeriod: 200000
+        receiveMessageWaitTimeSeconds: 15
+        visibilityTimeout: 300
 
 resources:
   Resources:
@@ -266,6 +277,8 @@ resources:
         AttributeDefinitions:
           - AttributeName: "address"
             AttributeType: "S"
+          - AttributeName: "requestId"
+            AttributeType: "S"
         ProvisionedThroughput:
           ReadCapacityUnits: "1"
           WriteCapacityUnits: "1"
@@ -273,6 +286,16 @@ resources:
         TimeToLiveSpecification:
           AttributeName: ttl
           Enabled: true
+        GlobalSecondaryIndexes:
+          - IndexName: requestId-index
+            KeySchema:
+              - AttributeName: requestId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 5
+              WriteCapacityUnits: 5
 
     EmailsTable:
       Type: AWS::DynamoDB::Table

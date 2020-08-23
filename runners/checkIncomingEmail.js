@@ -1,4 +1,4 @@
-const { isAddressExist } = require("../src/handlers/checkIncomingEmail");
+const { main } = require("../src/handlers/checkIncomingEmail");
 const { logger } = require("../src/utils/logger");
 
 (async () => {
