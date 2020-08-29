@@ -75,14 +75,12 @@ const getConversationDetail = async address => {
 		Key: { address }
 	};
 	try {
-		const Item = await executeDynamoDbAction(params, "get");
-		if (!Item) {
+		const { Item } = await executeDynamoDbAction(params, "get");
+		if (!Item || !Item.context) {
 			return null;
 		}
 		const { context } = Item;
-		if (!context) {
-			return null;
-		}
+
 		const activity = context["_activity"];
 		const adapter = context["_adapter"];
 		const { conversation, from, recipient, id: activityId, serviceUrl } = activity;
@@ -124,6 +122,7 @@ const deleteEmailItem = async (destination, messageId) => {
 };
 
 module.exports = {
+	executeDynamoDbAction,
 	getConversationDetail,
 	isAddressExist,
 	storeEmail,
