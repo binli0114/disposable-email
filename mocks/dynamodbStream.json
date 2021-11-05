@@ -1,0 +1,79 @@
+{
+	"Records": [
+		{
+			"eventID": "d3753b18b36b3a3040d669869e1bea40",
+			"eventName": "INSERT",
+			"eventVersion": "1.1",
+			"eventSource": "aws:dynamodb",
+			"awsRegion": "us-east-1",
+			"dynamodb": {
+				"ApproximateCreationDateTime": 1598014676,
+				"Keys": {
+					"destination": {
+						"S": "uPmC161h@happyeme.com"
+					},
+					"messageId": {
+						"S": "kcpiddbc6uqu4b1ms6tgbfln4r3ou4e23htujlo1"
+					}
+				},
+				"NewImage": {
+					"bucketName": {
+						"S": "incoming.disposable.v2.happyeme.com"
+					},
+					"bucketObjectKey": {
+						"S": "kcpiddbc6uqu4b1ms6tgbfln4r3ou4e23htujlo1"
+					},
+					"destination": {
+						"S": "uPmC161h@happyeme.com"
+					},
+					"messageId": {
+						"S": "kcpiddbc6uqu4b1ms6tgbfln4r3ou4e23htujlo1"
+					},
+					"isNew": {
+						"BOOL": true
+					},
+					"source": {
+						"S": "binlivvvv@gmail.com"
+					},
+					"commonHeaders": {
+						"M": {
+							"date": {
+								"S": "Fri, 21 Aug 2020 22:57:40 +1000"
+							},
+							"returnPath": {
+								"S": "binlivvvv@gmail.com"
+							},
+							"subject": {
+								"S": "TEST"
+							},
+							"messageId": {
+								"S": "<CAAhf=sMgP8pog3WXcdQDobA=d8=UgzJLqVYvMOdRsody7pp=hA@mail.gmail.com>"
+							},
+							"from": {
+								"L": [
+									{
+										"S": "Bin Li <binlivvvv@gmail.com>"
+									}
+								]
+							},
+							"to": {
+								"L": [
+									{
+										"S": "uPmC161h@happyeme.com"
+									}
+								]
+							}
+						}
+					},
+					"timestamp": {
+						"S": "2020-08-21T12:57:52.418Z"
+					}
+				},
+				"SequenceNumber": "51588900000000027413680167",
+				"SizeBytes": 563,
+				"StreamViewType": "NEW_IMAGE"
+			},
+			"eventSourceARN": "arn:aws:dynamodb:us-east-1:073342643714:table/disposable_emails_table/stream/2020-08-21T10:33:51.382"
+		}
+	]
+}

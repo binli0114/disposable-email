@@ -1,0 +1,69 @@
+{
+  "name": "disposable-email",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "check": "npm run lint && npm run coverage",
+    "coverage": "npm run test -- --coverage --silent",
+    "test": "jest --passWithNoTests",
+    "test:watch": "npm test -- --watch",
+    "lint": "eslint '**/*.js' --ignore-path .gitignore",
+    "lint:fix": "npm run lint -- --fix",
+    "offline": "serverless offline start --region localhost --stage dev --seed=domain"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/binli0114/disposable-email.git"
+  },
+  "keywords": [
+    "disposable",
+    "email"
+  ],
+  "author": "Bin Li",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/binli0114/disposable-email/issues"
+  },
+  "homepage": "https://github.com/binli0114/disposable-email#readme",
+  "lint-staged": {
+    "**/*.js": [
+      "npm run lint:fix"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "npm run check"
+    }
+  },
+  "dependencies": {
+    "aws-sdk": "^2.729.0",
+    "axios": "^0.20.0",
+    "dynamodb-driver": "^1.7.14",
+    "mailparser": "^2.8.1",
+    "mailparser-mit": "^1.0.0",
+    "moment": "^2.27.0",
+    "winston": "^3.3.3"
+  },
+  "devDependencies": {
+    "aws-sdk-mock": "^5.1.0",
+    "commander": "^6.0.0",
+    "eslint": "^7.3.1",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-jest": "^23.17.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "eslint-plugin-security": "^1.4.0",
+    "husky": "^4.2.5",
+    "jest": "^26.1.0",
+    "lint-staged": "^10.2.11",
+    "prettier": "^2.0.5",
+    "serverless-dynamodb-local": "^0.2.39",
+    "serverless-iam-roles-per-function": "^2.0.2",
+    "serverless-offline": "^6.5.0",
+    "serverless-plugin-lambda-dead-letter": "^1.2.1",
+    "serverless-prune-plugin": "^1.4.3",
+    "serverless-pseudo-parameters": "^2.5.0"
+  }
+}

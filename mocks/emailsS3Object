@@ -1,0 +1,65 @@
+Return-Path: <binlivvvv@gmail.com>
+Received: from mail-wr1-f46.google.com (mail-wr1-f46.google.com [209.85.221.46])
+by inbound-smtp.us-east-1.amazonaws.com with SMTP id o3onj4thattd9m3fpn5ka148qcp7lpbtnfe4ss01
+for 5lnacAU3@happyeme.com;
+Fri, 21 Aug 2020 09:22:43 +0000 (UTC)
+X-SES-Spam-Verdict: PASS
+X-SES-Virus-Verdict: PASS
+Received-SPF: pass (spfCheck: domain of _spf.google.com designates 209.85.221.46 as permitted sender) client-ip=209.85.221.46; envelope-from=binlivvvv@gmail.com; helo=mail-wr1-f46.google.com;
+Authentication-Results: amazonses.com;
+spf=pass (spfCheck: domain of _spf.google.com designates 209.85.221.46 as permitted sender) client-ip=209.85.221.46; envelope-from=binlivvvv@gmail.com; helo=mail-wr1-f46.google.com;
+dkim=pass header.i=@gmail.com;
+dmarc=pass header.from=gmail.com;
+X-SES-RECEIPT: AEFBQUFBQUFBQUFINjhaOEJvMnZoUEt4L1g2MVVsVHNtV0xiM1o4NENnZy9WckV1ZDllYkpzbHVTNVZUcE9pOHRRUDA0elRLb3BBOVRnV0g1TThFbDJFcGRMdEhTWTNiRTRuZ05kRUxIaWxNSElhWFlEUW5icjc2MUtjaHlhVzZpUU1XM24yYVNNYXpJbGMybWpUcmhaMEkwcmJJOWxDNUdkNEhqeUk5TDNzMVpKb1lFcmNiV3FpK2w5dERUMWh0R0tON0xkaitRaVB4bmp4d1FYYUoxc1plaDBWYUZPUmtYSkdKeGtzVGJKMTErNm1qd2hkcTU1M2NLKzNhNUVNcFMzTnVib2RYOXBqWFhBMzJOTGlQT2ZBdzhaaVRBR3ZRZmNFNEo1a1ZkOWNOWGFBcThqOE5vVGc9PQ==
+X-SES-DKIM-SIGNATURE: a=rsa-sha256; q=dns/txt; b=MwH3HDK2vhLZU5uglmoz5K5zfGQxSwDvkfLGG5PmV6KhIGhaZ1nan5XliXgsri3S0vufMGYn+5xRftUG8XxJ1mSN3PtucL3mxtSVg3cs37YZl+ghaVlcNVPTH5u/yVJpRI6mvz6olfbJAjsId38UrXkosHPf6pbdckfinmZfi5I=; c=relaxed/simple; s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1598001764; v=1; bh=KFHQ2Ucn5wdiusI+pcT4GyfTlSxpLE2baThcLLynnDg=; h=From:To:Cc:Bcc:Subject:Date:Message-ID:MIME-Version:Content-Type:X-SES-RECEIPT;
+Received: by mail-wr1-f46.google.com with SMTP id a5so1299109wrm.6
+for <5lnacAU3@happyeme.com>; Fri, 21 Aug 2020 02:22:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+d=gmail.com; s=20161025;
+h=mime-version:from:date:message-id:subject:to;
+bh=KFHQ2Ucn5wdiusI+pcT4GyfTlSxpLE2baThcLLynnDg=;
+b=oc5Rnfm+aHxLDqiZ3jJiqTV4b4xUbiKfWwxmNXwB6IT0DdO0dRFJgGAxI8ra6X06x9
+IPBBMh9YFKfI1/0pOkKPj9YnorcqSvW9lUe8YUwmHHDfyRSl8zCgfuDQZqIiMBuV8hqj
+l8V74ui1gHcMMJdQfY8miXCTxoIX4Wn/5OvA6j2yaE5fLJRJ/xulgkDJ+nYqMJbXu9Bf
+r9XN+lVecjcyQHyvrBffysqd7mK+/bnDbcPUY5frOtzgsQcqGTPACYiv5kkRzSs7zean
+DCyrOIf2HqwiVB1amy8dDLQwD9N8hz7jzb5FuTLcl+LlBg3VRSJUq9VQKfCsWwB72GE0
+L0GQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+d=1e100.net; s=20161025;
+h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+bh=KFHQ2Ucn5wdiusI+pcT4GyfTlSxpLE2baThcLLynnDg=;
+b=JkpOKEMiqns2W23qJBg7xJqfn4lEDp6cD+8m6jHEYTbaQeKzDv+2UWe3NLGbTWI4yk
+0/TPRSOcnYsiyPBQwJkcw5SG01RNdlvV71ZgbdP8FSES9+xPxAY6vKxJHZ5CS+3PfKiY
+zxpZMv9avX7YkcvbJ15gSJFGmNFhXrXCG5cVL40cypvXxQauE9y+mmxc1l+2Zi7K4zHm
+xgJHHTo2S9w8f53PNYkHVnh5+OQPRhbQBXC7khszAnUdP8PSPwtmP8CA70UCrOPJ3bmT
+nqGPfwgMY4HvcGwyvfrd1LMEhhFmPI7cV+oZxXI6kVUuJ9Stf0hO147a6SG83QEiiUau
+TIHQ==
+X-Gm-Message-State: AOAM530NmvhYNlfSJCRQcCb4uWyjMix6uSrwcXPqLHXA8kDevcIz4N/F
+CI1pVhSYNGBT3ypDwbjfJX+dnNBVu9oQttBgKNwslpZi
+X-Google-Smtp-Source: ABdhPJyALMKX1xOLrQ4rVWBCBV1s/NlKfUeSTDyI0FV5DJ2nLjWPbo/GmwgbpJ38Us5hLEwaumh0AUSGpYSp9l/1lVI=
+X-Received: by 2002:adf:ec10:: with SMTP id x16mr1814362wrn.74.1598001762753;
+Fri, 21 Aug 2020 02:22:42 -0700 (PDT)
+MIME-Version: 1.0
+From: Bin Li <binlivvvv@gmail.com>
+Date: Fri, 21 Aug 2020 19:22:32 +1000
+Message-ID: <CAAhf=sMUzvQnA4nZqUBu35CL4Scmb4UfvnqmV8Wa0wqJuH-4WQ@mail.gmail.com>
+Subject: TEST4
+To: 5lnacAU3@happyeme.com
+Content-Type: multipart/alternative; boundary="0000000000006b609705ad5fc7c3"
+
+--0000000000006b609705ad5fc7c3
+Content-Type: text/plain; charset="UTF-8"
+
+Hello Bin Li
+
+This is a test email with follow activation code
+
+Regards,
+
+--0000000000006b609705ad5fc7c3
+Content-Type: text/html; charset="UTF-8"
+
+<div dir="ltr">Hello Bin Li<div><br></div><div>This is a test email with follow activation code</div><div><br></div><div>Regards,</div><div><br></div></div>
+
+--0000000000006b609705ad5fc7c3--
+

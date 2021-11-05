@@ -1,0 +1,336 @@
+service: disposable-email
+
+plugins:
+  - serverless-prune-plugin
+  - serverless-dynamodb-local
+  - serverless-offline
+  - serverless-iam-roles-per-function
+  - serverless-pseudo-parameters
+  - serverless-plugin-lambda-dead-letter
+
+custom:
+  dynamodb:
+    start:
+      port: 8000
+      inMemory: true
+      migrate: true
+      seed: true
+    seed:
+      domain:
+        sources:
+          - table: disposable_emails_table
+            sources: [./mocks/emails.json]
+          - table: disposable_sessions_table
+            sources: [./mocks/sessions.json]
+          - table: disposable_addresses_table
+            sources: [./mocks/addresses.json]
+    stages:
+      - ${opt:stage, self:provider.stage, 'dev'}
+    migration:
+      dir: offline/migrations
+  prune:
+    automatic: true
+    number: 3
+  cors:
+    staging: false
+    production: false
+    default: true
+  domainName: "happyeme.com"
+  accountId: !Ref AWS::AccountId
+  ruleSetName: "happyemerule"
+  emailsTableName: "disposable_emails_table"
+  sessionsTableName: "disposable_sessions_table"
+  addressesTableName: "disposable_addresses_table"
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: dev
+  accountId: 716354888588
+  region: ${opt:region}
+
+  tags:
+    Service: ${self:service}
+    Owner: binli
+    Environment: ${env:ENVIRONMENT}
+    Region: ${self:provider.region}
+    Version: ${env:SERVICE_VERSION}
+
+  stackTags:
+    Service: ${self:service}
+    Owner: binli
+    Environment: ${env:ENVIRONMENT}
+    Region: ${self:provider.region}
+    Version: ${env:SERVICE_VERSION}
+
+functions:
+  checkIncomingEmail:
+    handler: src/handlers/checkIncomingEmail.main
+    timeout: 300
+    memorySize: 256
+    iamRoleStatementsInherit: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - "iam:CreatePolicyVersion"
+          - "iam:DeletePolicyVersion"
+        Resource: "*"
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:Query
+        Resource:
+          - arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/${self:custom.addressesTableName}*
+
+  storeIncomingEmail:
+    handler: src/handlers/storeIncomingEmail.main
+    timeout: 300
+    memorySize: 256
+    iamRoleStatementsInherit: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+          - dynamodb:GetItem
+        Resource:
+          - arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/${self:custom.emailsTableName}
+          - arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/${self:custom.addressesTableName}
+          - arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/${self:custom.sessionsTableName}
+    events:
+      - sns:
+          arn: !Ref IncomingMailTopic
+          topicName: IncomingMailTopic
+
+  distributeEmail:
+    handler: src/handlers/distributeEmail.main
+    timeout: 300
+    memorySize: 256
+    iamRoleStatementsInherit: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - s3:DeleteObject
+          - s3:GetObject
+          - s3:ListBucket
+          - s3:PutObject
+        Resource: "*"
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+          - dynamodb:GetItem
+        Resource:
+          - arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/${self:custom.emailsTableName}
+          - arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/${self:custom.addressesTableName}
+          - arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/${self:custom.sessionsTableName}
+      - Effect: Allow
+        Action:
+          - sqs:SendMessage
+        Resource: "*"
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt: [EmailsTable, StreamArn]
+
+    deadLetter:
+      sqs:      # New Queue with these properties
+        queueName: distribute-email-dlq
+        delaySeconds: 60
+        maximumMessageSize: 2048
+        messageRetentionPeriod: 200000
+        receiveMessageWaitTimeSeconds: 15
+        visibilityTimeout: 300
+
+resources:
+  Resources:
+    IncomingMailBucket:
+      Type: "AWS::S3::Bucket"
+      Properties:
+        BucketName: !Join
+          - "."
+          - - "incoming.disposable.v2"
+            - ${self:custom.domainName}
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+
+    IncomingMailBucketPolicy:
+      Type: "AWS::S3::BucketPolicy"
+      Properties:
+        Bucket:
+          Ref: "IncomingMailBucket"
+        PolicyDocument:
+          Statement:
+            Action: "s3:PutObject"
+            Effect: "Allow"
+            Resource: !Join
+              - ""
+              - - "arn:aws:s3:::"
+                - !Ref IncomingMailBucket
+                - "/*"
+            Principal:
+              Service: "ses.amazonaws.com"
+            Condition:
+              StringEquals:
+                aws:Referer: ${self:custom.accountId}
+
+    IncomingMailTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: "Disposable incoming mail topic"
+        TopicName: IncomingMailTopic
+        Subscription:
+          - Endpoint: !Join
+              - ""
+              - - "arn:aws:lambda:"
+                - ${self:provider.region}
+                - ":"
+                - ${self:custom.accountId}
+                - ":function:disposable-email-"
+                - ${self:provider.stage}
+                - "-checkIncomingEmail"
+            Protocol: "LAMBDA"
+
+    IncomingMailTopicPolicy:
+      Type: "AWS::SNS::TopicPolicy"
+      Properties:
+        Topics:
+          - !Ref IncomingMailTopic
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action: "sns:Publish"
+              Resource:
+                - !Ref IncomingMailTopic
+              Principal:
+                Service: "ses.amazonaws.com"
+              Condition:
+                ArnLike:
+                  AWS:SourceArn: !Join
+                    - ""
+                    - - "arn:aws:*:*:"
+                      - ${self:custom.accountId}
+                      - ":*"
+
+    IncomingMailCheckPermission:
+      Type: AWS::Lambda::Permission
+      Properties:
+        Action: lambda:InvokeFunction
+        FunctionName: !Ref CheckIncomingEmailLambdaFunction
+        Principal: ses.amazonaws.com
+        SourceAccount: ${self:custom.accountId}
+
+
+    ReceiptRuleSet:
+      Type: AWS::SES::ReceiptRuleSet
+      Properties:
+        RuleSetName: ${self:custom.ruleSetName}
+
+#    ActiveReceiptRuleSet:
+#      Type: Custom::ActiveReceiptRuleSet
+#      Properties:
+#        RuleSetName: !Ref ReceiptRuleSet
+#        Region: !Ref 'AWS::Region'
+#        ServiceToken: !Join
+#          - ""
+#          - - "arn:aws:lambda:"
+#            - ${self:provider.region}
+#            - ":"
+#            - ${self:custom.accountId}
+#            - ":function:disposable-email-"
+#            - ${self:provider.stage}
+#            - "-checkIncomingEmail"
+
+    ReceiptRule:
+      Type: AWS::SES::ReceiptRule
+      Properties:
+        RuleSetName: ${self:custom.ruleSetName}
+        Rule:
+          Name: "disposable"
+          Enabled: true
+          ScanEnabled: true
+          Actions:
+            - LambdaAction:
+                FunctionArn: !Join
+                  - ""
+                  - - "arn:aws:lambda:"
+                    - ${self:provider.region}
+                    - ":"
+                    - ${self:custom.accountId}
+                    - ":function:disposable-email-"
+                    - ${self:provider.stage}
+                    - "-checkIncomingEmail"
+                InvocationType: "RequestResponse"
+            - S3Action:
+                BucketName: !Ref IncomingMailBucket
+                TopicArn: !Ref IncomingMailTopic
+          Recipients:
+            - ${self:custom.domainName}
+
+    AddressesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        KeySchema:
+          - AttributeName: "address"
+            KeyType: "HASH"
+        AttributeDefinitions:
+          - AttributeName: "address"
+            AttributeType: "S"
+          - AttributeName: "requestId"
+            AttributeType: "S"
+        ProvisionedThroughput:
+          ReadCapacityUnits: "1"
+          WriteCapacityUnits: "1"
+        TableName: ${self:custom.addressesTableName}
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+        GlobalSecondaryIndexes:
+          - IndexName: requestId-index
+            KeySchema:
+              - AttributeName: requestId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 5
+              WriteCapacityUnits: 5
+
+    EmailsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        KeySchema:
+          - AttributeName: "destination"
+            KeyType: "HASH"
+          - AttributeName: "messageId"
+            KeyType: "RANGE"
+        AttributeDefinitions:
+          - AttributeName: "destination"
+            AttributeType: "S"
+          - AttributeName: "messageId"
+            AttributeType: "S"
+        ProvisionedThroughput:
+          ReadCapacityUnits: "1"
+          WriteCapacityUnits: "1"
+        TableName: ${self:custom.emailsTableName}
+        StreamSpecification:
+          StreamViewType: NEW_IMAGE
+
+    SessionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        KeySchema:
+          - AttributeName: "sessionId"
+            KeyType: "HASH"
+        AttributeDefinitions:
+          - AttributeName: "sessionId"
+            AttributeType: "S"
+        ProvisionedThroughput:
+          ReadCapacityUnits: "1"
+          WriteCapacityUnits: "1"
+        TableName: ${self:custom.sessionsTableName}
